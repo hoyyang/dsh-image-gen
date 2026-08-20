@@ -1,0 +1,14 @@
+# dsh-image-gen bundle patch: inserts the generic image generation plugin row
+# into the profile roster. Install: dsh plugin --profile <name> add github:hoyyang/dsh-image-gen
+#
+# 配置（可选，三选一，优先级：设置页 > 此处 config > 本地文件 ~/.dsh/dsh-image-gen.json）：
+# - insert:
+#     - id: dsh-image-gen
+#       name: '@dsh-external/dsh-image-gen'
+#       config:
+#         baseUrl: https://your-gateway.example.com/v1
+#         model: gpt-image-2
+#         apiKey: sk-xxxx
+- insert:
+    - id: dsh-image-gen
+      name: '@dsh-external/dsh-image-gen'
