@@ -1,53 +1,140 @@
-# @dsh-external/dsh-image-gen
+<div align="center">
 
-DSH 通用图像生成插件：接入任意 **OpenAI 兼容生图网关**（自定义 baseUrl + 模型 + API Key），
-设置页可视化配置，开箱即可用。任何生图模型都行——只要网关接受 OpenAI Images API 形状的请求。
+# 🎨 dsh-image-gen
 
-## 触发方式
+**DeepSeek Harness 的通用 AI 生图插件**
 
-| 方式 | 说明 |
-| --- | --- |
-| 命令（确定性触发） | `/dsh-image-gen <prompt> [--size=1024x1024\|1024x1536\|1536x1024\|auto] [--quality=low\|medium\|high]`——直接生成，不经模型回合；`--low/--medium/--high` 是质量快捷写法 |
-| 工具（模型调用） | `dsh_image_gen`（生成）/ `dsh_image_gen_config`（本地配置检查，免费、不发请求） |
-| skill | `dsh-image-gen`——引导模型何时使用上述工具 |
+接入任意 OpenAI 兼容生图网关 · 设置页可视化配置 · 一句话出图
 
-## 安装
+[![Release](https://img.shields.io/github/v/release/hoyyang/dsh-image-gen?style=flat-square&label=release)](https://github.com/hoyyang/dsh-image-gen/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-plugin-4D6BFE?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-5865F2?style=flat-square)](https://github.com/topics/dsh-plugin)
+
+</div>
+
+---
+
+## 这是什么
+
+dsh-image-gen 让 DeepSeek Harness 的智能体**直接生成图片**：
+任意生图网关、任意生图模型，**三个字段**配好即可用，无需改任何代码。
+
+- 🎨 **一句话出图** —— `/dsh-image-gen 一只趴在窗台上的橘猫`，即调即出
+- 🔌 **任意网关** —— OpenAI 兼容的生图 API 都能接（官方、中转、one-api / new-api 等）
+- 🎛 **设置页配置** —— 填 baseUrl / 模型 / API Key，保存后**即时生效**，不用重启
+- 🔒 **安全默认** —— 密钥只存本机、出图目录 0700、错误自动脱敏、不写日志
+- 💸 **费用可控** —— 每次调用只生成一张图；失败不自动重试
+
+## 快速开始
+
+> 前提：已安装 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh` 命令可用）。
+
+**① 安装**
 
 ```bash
 dsh plugin --profile web add github:hoyyang/dsh-image-gen
-# 重启 dsh web 生效（bundles 层自动装配）。锁版本：...#v0.2.0
 ```
 
-## 配置（按优先级，第一个非空生效）
+锁版本可加标签：`dsh plugin --profile web add github:hoyyang/dsh-image-gen#v0.2.0`
 
-1. **设置页（推荐）**：DSH Web 设置 → 插件 → `dsh-image-gen` 卡片，填 baseUrl / 模型 / API Key 保存，**即时生效**。
-2. **环境变量**：`DSH_IMAGE_BASE_URL` / `DSH_IMAGE_MODEL` / `DSH_IMAGE_API_KEY` / `DSH_IMAGE_IMAGES_PATH` / `DSH_IMAGE_OUTPUT_DIR` / `DSH_IMAGE_TIMEOUT_MS`。
-3. **profile 配置行**：cordis.patch.yml 中 bundle 行的 `config:` 块（见仓库内 cordis.patch.yml 注释示例）。
-4. **本地文件**：`~/.dsh/dsh-image-gen.json`（须 0600、本人所有）：
-   ```json
-   { "baseUrl": "https://你的网关/v1", "model": "你的生图模型名", "apiKey": "你的密钥" }
-   ```
+**② 配置**（30 秒）
+
+重启 `dsh web` 后，打开 **设置 → 插件 → dsh-image-gen**，填三样保存：
+
+| 字段 | 填什么 | 示例 |
+| --- | --- | --- |
+| 网关 base URL | 生图网关的根地址（https） | `https://你的网关.example.com/v1` |
+| 模型 | 网关接受的生图模型名 | `gpt-image-2` |
+| API Key | 网关密钥 | `sk-xxx`（仅存本机） |
+
+**③ 出图**
+
+在输入框输入：
+
+```
+/dsh-image-gen 一只趴在窗台上的橘猫，午后阳光，油画风格
+```
+
+也可以直接对话：「帮我生成一张 xx 的图」，智能体会自动调用工具。
+
+## 使用方式
+
+| 方式 | 示例 | 适用场景 |
+| --- | --- | --- |
+| 命令 | `/dsh-image-gen <描述> [--size=1024x1536] [--quality=high]` | 确定性触发，不经模型回合 |
+| 对话 | 「生成一张赛博朋克城市海报」 | 让模型自己决定何时出图 |
+| 工具 | `dsh_image_gen` | 脚本化 / 手动调用 |
+| 配置检查 | `dsh_image_gen_config` | 免费：只查配置，不产生账单 |
+
+参数：`--size=1024x1024｜1024x1536｜1536x1024｜auto`，`--quality=low｜medium｜high`（`--low/--medium/--high` 可简写）。
+
+## 配置
+
+四种方式任选其一，**优先级从高到低**：环境变量 > 设置页 > profile 配置 > 本地文件。
+
+**方式一：设置页（推荐）** —— 见「快速开始 ②」，可视化、即时生效。
+
+**方式二：环境变量**
+
+```bash
+export DSH_IMAGE_BASE_URL="https://你的网关.example.com/v1"
+export DSH_IMAGE_MODEL="gpt-image-2"
+export DSH_IMAGE_API_KEY="sk-xxx"
+```
+
+**方式三：profile 配置** —— 在 profile 的 `cordis.patch.yml` 中给插件行加 `config:` 块（见仓库内 [cordis.patch.yml](cordis.patch.yml) 的注释示例）。
+
+**方式四：本地文件** —— 适合无 UI 的 profile（文件权限须 0600）：
+
+```bash
+cat > ~/.dsh/dsh-image-gen.json <<'EOF'
+{
+  "baseUrl": "https://你的网关.example.com/v1",
+  "model": "gpt-image-2",
+  "apiKey": "sk-xxx"
+}
+EOF
+chmod 600 ~/.dsh/dsh-image-gen.json
+```
+
+其余可选项：
 
 | 项 | 默认值 | 说明 |
 | --- | --- | --- |
-| baseUrl | 无（必填） | 网关根地址，必须 https |
-| model | `gpt-image-2` | 网关接受的生图模型名，任意 |
-| imagesPath | `/images/generations` | 生图接口路径 |
-| apiKey | 无（必填） | 网关密钥，仅存本机 |
-| outputDirectory | `~/.dsh/generated_images/dsh-image-gen/`（0700） | 出图目录 |
-| timeoutMs | 300000 | 上游超时 |
+| imagesPath | `/images/generations` | 生图接口路径（个别网关路径不同时改它） |
+| outputDirectory | `~/.dsh/generated_images/dsh-image-gen/` | 出图目录（0700） |
+| timeoutMs | `300000` | 上游超时（毫秒） |
 
-## 接入契约
+## 接入契约（写给网关）
 
-网关需支持 OpenAI Images API 形状：`POST {baseUrl}{imagesPath}`，请求体
-`{ model, prompt, n: 1, size, quality }` + Bearer 鉴权，响应 `data[0].b64_json`。
-（one-api/new-api、各类中转、官方 OpenAI 等均适用；返回 url 而非 b64_json 的网关暂不支持。）
+只要你的网关支持 OpenAI Images API 形状即可接入：
+
+```
+POST {baseUrl}/images/generations
+Authorization: Bearer <API Key>
+{ "model": "...", "prompt": "...", "n": 1, "size": "1024x1024", "quality": "high" }
+
+响应: { "data": [ { "b64_json": "..." } ] }
+```
+
+返回 URL 而非 `b64_json` 的网关暂不支持（欢迎 PR）。
 
 ## 行为边界
 
-- 每次调用只生成一张图；付费且非幂等——超时/歧义网络失败后**不自动重试**。
-- 出图目录 0700、原子写入、API Key 脱敏、响应体大小限制、base64/魔数校验。
-- 不改动 DSH 主模型路由（生图网关是独立配置）。
+- **付费且非幂等**：超时或网络歧义失败后不会自动重试——重试请手动发起
+- **一次一张**：单次调用只生成一张图
+- **不动主模型**：生图网关独立配置，不影响 DeepSeek Harness 的聊天模型路由
+
+## 常见问题
+
+**Q：报「No gateway base URL configured」？** A：四种配置方式都没生效，先跑 `dsh_image_gen_config` 看具体缺什么。
+
+**Q：改了设置页没生效？** A：设置页保存即时生效；环境变量改完需重启 `dsh`。
+
+**Q：网关模型名带前缀（如 `azure_openai/...`）？** A：把网关要求的完整模型名填进「模型」字段即可，插件原样透传。
+
+**Q：图存到哪了？** A：默认 `~/.dsh/generated_images/dsh-image-gen/`，生成后命令/工具会返回完整路径。
 
 ## 开发
 
@@ -55,3 +142,65 @@ dsh plugin --profile web add github:hoyyang/dsh-image-gen
 pnpm install
 bash scripts/build.sh   # tsc 编译 host + tsdown 打包 client（lib/client.js）
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 Hoy Yang
+
+---
+
+## English
+
+> Chinese is the default language. Full English guide below.
+
+**dsh-image-gen** is a universal AI image generation plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness):
+plug in any OpenAI-compatible image gateway and any image model, configure three fields in the
+settings UI, and generate images with one command — no code changes.
+
+### Quick Start
+
+1. Install: `dsh plugin --profile web add github:hoyyang/dsh-image-gen` (pin a version with `#v0.2.0`)
+2. Restart `dsh web`, open **Settings → Plugins → dsh-image-gen**, save `base URL` + `model` + `API key` (applies instantly)
+3. Generate: `/dsh-image-gen a cat sleeping on a windowsill, golden afternoon light` — or just ask in plain conversation
+
+### Triggers
+
+| Surface | Example |
+| --- | --- |
+| Command | `/dsh-image-gen <prompt> [--size=1024x1536] [--quality=high]` (deterministic, no model turn) |
+| Conversation | “Generate a cyberpunk city poster” (model decides when to call the tool) |
+| Tool | `dsh_image_gen` / `dsh_image_gen_config` (free local config check) |
+
+### Configuration (first non-empty wins)
+
+1. **Settings UI (recommended)** — live, no restart
+2. **Env vars** — `DSH_IMAGE_BASE_URL` / `DSH_IMAGE_MODEL` / `DSH_IMAGE_API_KEY` / `DSH_IMAGE_IMAGES_PATH` / `DSH_IMAGE_OUTPUT_DIR` / `DSH_IMAGE_TIMEOUT_MS`
+3. **Profile config** — a `config:` block on the plugin row in `cordis.patch.yml`
+4. **Local file** — `~/.dsh/dsh-image-gen.json` (mode 0600):
+
+```bash
+cat > ~/.dsh/dsh-image-gen.json <<'EOF'
+{
+  "baseUrl": "https://your-gateway.example.com/v1",
+  "model": "gpt-image-2",
+  "apiKey": "sk-xxx"
+}
+EOF
+chmod 600 ~/.dsh/dsh-image-gen.json
+```
+
+### Gateway contract
+
+Any gateway speaking the OpenAI Images API shape works:
+`POST {baseUrl}/images/generations` with Bearer auth and body
+`{ model, prompt, n: 1, size, quality }`, returning `data[0].b64_json`.
+
+### Behavior
+
+- Paid and non-idempotent: no automatic retries after timeouts or ambiguous failures
+- One image per call; the chat model routing is never touched
+- Secrets stay local (settings store / env / 0600 file), output dir is 0700, errors are redacted
+
+### License
+
+[MIT](LICENSE) © 2026 Hoy Yang

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const source = join(root, 'client', 'client.js')
 const target = join(root, 'lib', 'client.js')
-const ID = '@dsh-external/dsh-image-gen/client'
+const ID = '@dsh-external/dsh-image-gen'
 
 const body = readFileSync(source, 'utf8')
 const wrapped = [
