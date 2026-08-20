@@ -1,6 +1,6 @@
 {
   "name": "@dsh-external/dsh-image-gen",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "DSH 通用图像生成插件：接入任意 OpenAI 兼容生图网关（自定义 baseUrl + 模型 + API Key），设置页可视化配置。工具 dsh_image_gen / dsh_image_gen_config + 命令 /dsh-image-gen + skill。",
   "private": true,
   "type": "module",
@@ -12,7 +12,8 @@
     "src",
     "cordis.patch.yml",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "README.en.md"
   ],
   "license": "MIT",
   "keywords": [

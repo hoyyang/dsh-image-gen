@@ -11,6 +11,8 @@
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-plugin-4D6BFE?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 [![dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-5865F2?style=flat-square)](https://github.com/topics/dsh-plugin)
 
+**🌐 Language / 语言**：**简体中文** · [English](README.en.md)
+
 </div>
 
 ---
@@ -36,7 +38,7 @@ dsh-image-gen 让 DeepSeek Harness 的智能体**直接生成图片**：
 dsh plugin --profile web add github:hoyyang/dsh-image-gen
 ```
 
-锁版本可加标签：`dsh plugin --profile web add github:hoyyang/dsh-image-gen#v0.2.0`
+锁版本可加标签：`dsh plugin --profile web add github:hoyyang/dsh-image-gen#v0.2.2`
 
 **② 配置**（30 秒）
 
@@ -144,63 +146,5 @@ bash scripts/build.sh   # tsc 编译 host + tsdown 打包 client（lib/client.js
 ```
 
 ## License
-
-[MIT](LICENSE) © 2026 Hoy Yang
-
----
-
-## English
-
-> Chinese is the default language. Full English guide below.
-
-**dsh-image-gen** is a universal AI image generation plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness):
-plug in any OpenAI-compatible image gateway and any image model, configure three fields in the
-settings UI, and generate images with one command — no code changes.
-
-### Quick Start
-
-1. Install: `dsh plugin --profile web add github:hoyyang/dsh-image-gen` (pin a version with `#v0.2.0`)
-2. Restart `dsh web`, open **Settings → Plugins → dsh-image-gen**, save `base URL` + `model` + `API key` (applies instantly)
-3. Generate: `/dsh-image-gen a cat sleeping on a windowsill, golden afternoon light` — or just ask in plain conversation
-
-### Triggers
-
-| Surface | Example |
-| --- | --- |
-| Command | `/dsh-image-gen <prompt> [--size=1024x1536] [--quality=high]` (deterministic, no model turn) |
-| Conversation | “Generate a cyberpunk city poster” (model decides when to call the tool) |
-| Tool | `dsh_image_gen` / `dsh_image_gen_config` (free local config check) |
-
-### Configuration (first non-empty wins)
-
-1. **Settings UI (recommended)** — live, no restart
-2. **Env vars** — `DSH_IMAGE_BASE_URL` / `DSH_IMAGE_MODEL` / `DSH_IMAGE_API_KEY` / `DSH_IMAGE_IMAGES_PATH` / `DSH_IMAGE_OUTPUT_DIR` / `DSH_IMAGE_TIMEOUT_MS`
-3. **Profile config** — a `config:` block on the plugin row in `cordis.patch.yml`
-4. **Local file** — `~/.dsh/dsh-image-gen.json` (mode 0600):
-
-```bash
-cat > ~/.dsh/dsh-image-gen.json <<'EOF'
-{
-  "baseUrl": "https://your-gateway.example.com/v1",
-  "model": "gpt-image-2",
-  "apiKey": "sk-xxx"
-}
-EOF
-chmod 600 ~/.dsh/dsh-image-gen.json
-```
-
-### Gateway contract
-
-Any gateway speaking the OpenAI Images API shape works:
-`POST {baseUrl}/images/generations` with Bearer auth and body
-`{ model, prompt, n: 1, size, quality }`, returning `data[0].b64_json`.
-
-### Behavior
-
-- Paid and non-idempotent: no automatic retries after timeouts or ambiguous failures
-- One image per call; the chat model routing is never touched
-- Secrets stay local (settings store / env / 0600 file), output dir is 0700, errors are redacted
-
-### License
 
 [MIT](LICENSE) © 2026 Hoy Yang
